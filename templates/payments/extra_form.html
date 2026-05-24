@@ -14,13 +14,18 @@
         <form method="POST">
           <div class="mb-3">
             <label class="form-label fw-semibold">Student *</label>
-            <select name="student_id" class="form-select" required>
-              <option value="">Select student...</option>
-              <option value="all">— All Students —</option>
+            <div class="mb-1">
+              <label class="form-check-label small text-muted">
+                <input type="checkbox" id="select-all-students" class="form-check-input me-1">
+                Select all students
+              </label>
+            </div>
+            <select name="student_ids" class="form-select" multiple required style="height:180px">
               {% for s in students %}
               <option value="{{ s.id }}">{{ s.first_name }} {{ s.last_name }}</option>
               {% endfor %}
             </select>
+            <div class="form-text">Hold Ctrl (or Cmd on Mac) to select multiple.</div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Category *</label>
@@ -58,4 +63,9 @@
     </div>
   </div>
 </div>
+<script>
+document.getElementById('select-all-students').addEventListener('change', function() {
+  document.querySelectorAll('select[name="student_ids"] option').forEach(o => o.selected = this.checked);
+});
+</script>
 {% endblock %}
