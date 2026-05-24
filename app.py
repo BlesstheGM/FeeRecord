@@ -22,10 +22,17 @@ with app.app_context():
 
 
 # ── IP Guard ──────────────────────────────────────────────────────────────────
+def get_client_ip():
+    # Render (and most reverse proxies) put the real IP in X-Forwarded-For
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr
+
+
 @app.before_request
 def check_ip():
-    # Allow Render health checks from localhost
-    ip = request.remote_addr
+    ip = get_client_ip()
     db = db_module.get_db()
     allowed = db.execute(
         "SELECT 1 FROM allowed_ips WHERE ip_address = ?", (ip,)
@@ -496,7 +503,7 @@ def keyword_delete(rule_id):
 def settings_ip():
     db = get_db()
     allowed_ips = db.execute("SELECT * FROM allowed_ips ORDER BY added_at DESC").fetchall()
-    current_ip  = request.remote_addr
+    current_ip  = get_client_ip()
     return render_template("settings/ip_list.html", allowed_ips=allowed_ips, current_ip=current_ip)
 
 
