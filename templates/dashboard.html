@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – {{ daycare_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0 fw-bold">Dashboard</h4>
+  <span class="text-muted">{{ now.strftime('%B %Y') }}</span>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Active Students</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="stat-icon bg-success-soft text-success"><i class="bi bi-cash-stack"></i></div>
+        <div class="stat-value">R {{ "%.2f"|format(this_month_paid) }}</div>
+        <div class="stat-label">Received This Month</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="stat-icon bg-success-soft text-success"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-value">{{ paid_count }}</div>
+        <div class="stat-label">Paid This Month</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="stat-icon bg-danger-soft text-danger"><i class="bi bi-exclamation-circle-fill"></i></div>
+        <div class="stat-value">{{ unpaid_count }}</div>
+        <div class="stat-label">Unpaid / Partial</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Unmatched Alert -->
+{% if unmatched_count > 0 %}
+<div class="alert alert-warning d-flex align-items-center gap-3 mb-4">
+  <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+  <div>
+    <strong>{{ unmatched_count }} transaction{{ 's' if unmatched_count != 1 }} need manual assignment.</strong>
+    <a href="{{ url_for('unmatched') }}" class="ms-2 btn btn-sm btn-warning">Review Now</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent Transactions -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <span class="fw-semibold">Recent Transactions</span>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-upload me-1"></i> Upload Statement
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if recent_tx %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Student</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in recent_tx %}
+          <tr>
+            <td class="text-muted small">{{ tx.date }}</td>
+            <td>{{ tx.description[:60] }}</td>
+            <td class="text-success fw-semibold">R {{ "%.2f"|format(tx.amount) }}</td>
+            <td>
+              {% if tx.first_name %}
+                <a href="{{ url_for('student_detail', sid=tx.student_id) }}">
+                  {{ tx.first_name }} {{ tx.last_name }}
+                </a>
+              {% else %}
+                <span class="badge bg-warning text-dark">Unmatched</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+      No transactions yet. Upload a bank statement to get started.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

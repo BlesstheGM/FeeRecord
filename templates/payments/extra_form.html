@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Add Extra Charge{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{{ url_for('payments') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+  <h4 class="fw-bold mb-0">Add Extra Charge</h4>
+</div>
+
+<div class="row">
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Student *</label>
+            <select name="student_id" class="form-select" required>
+              <option value="">Select student...</option>
+              {% for s in students %}
+              <option value="{{ s.id }}">{{ s.first_name }} {{ s.last_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Category *</label>
+            <select name="category" class="form-select" required>
+              <option value="swimming">🏊 Swimming Lesson</option>
+              <option value="party">🎉 Pyjama Party</option>
+              <option value="trip">🚌 School Trip</option>
+              <option value="meal">🍱 Extra Meal</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Description *</label>
+            <input type="text" name="description" class="form-control"
+                   placeholder="e.g. Swimming lesson – 3 March" required>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Amount (R) *</label>
+              <input type="number" name="amount" class="form-control" step="0.01" min="0" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Date *</label>
+              <input type="date" name="date" class="form-control" value="{{ today }}" required>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-plus-circle me-1"></i> Add Charge
+            </button>
+            <a href="{{ url_for('payments') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

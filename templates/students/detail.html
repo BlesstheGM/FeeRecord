@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}{{ student.first_name }} {{ student.last_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{{ url_for('students') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+  <h4 class="fw-bold mb-0">{{ student.first_name }} {{ student.last_name }}</h4>
+  <a href="{{ url_for('student_edit', sid=student.id) }}" class="btn btn-outline-primary btn-sm ms-auto">
+    <i class="bi bi-pencil me-1"></i> Edit
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Profile card -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <div class="avatar-circle mx-auto mb-2">
+            {{ student.first_name[0] }}{{ student.last_name[0] }}
+          </div>
+          <h5 class="mb-0">{{ student.first_name }} {{ student.last_name }}</h5>
+          {% if student.tier_name %}
+          <span class="badge bg-primary-soft text-primary mt-1">{{ student.tier_name }}</span>
+          {% endif %}
+        </div>
+        <hr>
+        <div class="small">
+          {% if student.date_of_birth %}
+          <div class="mb-2"><i class="bi bi-calendar3 me-2 text-muted"></i>{{ student.date_of_birth }}</div>
+          {% endif %}
+          {% if student.parent_name %}
+          <div class="mb-2"><i class="bi bi-person me-2 text-muted"></i>{{ student.parent_name }}</div>
+          {% endif %}
+          {% if student.parent_phone %}
+          <div class="mb-2"><i class="bi bi-telephone me-2 text-muted"></i>{{ student.parent_phone }}</div>
+          {% endif %}
+          {% if student.start_date %}
+          <div class="mb-2"><i class="bi bi-door-open me-2 text-muted"></i>Since {{ student.start_date }}</div>
+          {% endif %}
+          {% if student.monthly_fee %}
+          <div class="mb-2"><i class="bi bi-cash me-2 text-muted"></i>R {{ "%.2f"|format(student.monthly_fee) }}/month</div>
+          {% endif %}
+          {% if student.notes %}
+          <hr>
+          <div class="text-muted">{{ student.notes }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- This month summary -->
+  <div class="col-md-8">
+    {% if this_month %}
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <span class="fw-semibold">This Month ({{ current_month }})</span>
+        <div class="d-flex gap-2">
+          {% if this_month.status == 'paid' %}
+            <span class="badge bg-success fs-6"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>
+          {% elif this_month.status == 'partial' %}
+            <span class="badge bg-warning text-dark fs-6"><i class="bi bi-dash-circle-fill me-1"></i>Partial</span>
+          {% elif this_month.status == 'unpaid' %}
+            <span class="badge bg-danger fs-6"><i class="bi bi-x-circle-fill me-1"></i>Unpaid</span>
+          {% endif %}
+          <a href="{{ url_for('statement_view', sid=student.id, month=current_month) }}"
+             class="btn btn-sm btn-outline-primary">View Statement</a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col">
+            <div class="text-muted small">Fee Due</div>
+            <div class="fw-bold">R {{ "%.2f"|format(this_month.fee_amount) }}</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small">Extras</div>
+            <div class="fw-bold">R {{ "%.2f"|format(this_month.total_extras) }}</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small">Paid</div>
+            <div class="fw-bold text-success">R {{ "%.2f"|format(this_month.total_paid) }}</div>
+          </div>
+          <div class="col">
+            <div class="text-muted small">Balance</div>
+            <div class="fw-bold {% if this_month.balance > 0 %}text-danger{% else %}text-success{% endif %}">
+              R {{ "%.2f"|format(this_month.balance) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Extra charges -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <span class="fw-semibold">Extra Charges</span>
+        <a href="{{ url_for('extra_new') }}?student={{ student.id }}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-plus"></i> Add Charge
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if extras %}
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="table-light"><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th></th></tr></thead>
+          <tbody>
+            {% for e in extras %}
+            <tr>
+              <td class="small text-muted">{{ e.date }}</td>
+              <td>{{ e.description }}</td>
+              <td><span class="badge bg-light text-dark border">{{ e.category or 'other' }}</span></td>
+              <td class="fw-semibold">R {{ "%.2f"|format(e.amount) }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('extra_delete', eid=e.id) }}"
+                      onsubmit="return confirm('Remove this charge?')">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-3 small">No extra charges.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Payment history -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <span class="fw-semibold">Payment History</span>
+      </div>
+      <div class="card-body p-0">
+        {% if transactions %}
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="table-light"><tr><th>Date</th><th>Description</th><th>Amount</th><th>How</th></tr></thead>
+          <tbody>
+            {% for tx in transactions %}
+            <tr>
+              <td class="small text-muted">{{ tx.date }}</td>
+              <td class="small">{{ tx.description[:60] }}</td>
+              <td class="text-success fw-semibold">R {{ "%.2f"|format(tx.amount) }}</td>
+              <td>
+                <span class="badge bg-light text-dark border small">{{ tx.matched_how or '—' }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-3 small">No payments recorded yet.</div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

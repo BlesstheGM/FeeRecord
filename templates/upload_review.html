@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Review Transactions{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">Review Transactions</h4>
+  <span class="text-muted">{{ transactions|length }} transactions found</span>
+</div>
+
+<form method="POST" action="{{ url_for('upload_confirm') }}">
+  <input type="hidden" name="batch_id" value="{{ batch_id }}">
+
+  <!-- Legend -->
+  <div class="d-flex gap-3 mb-3 flex-wrap">
+    <span><i class="bi bi-check-circle-fill text-success me-1"></i> Auto-matched</span>
+    <span><i class="bi bi-exclamation-circle-fill text-warning me-1"></i> Low confidence</span>
+    <span><i class="bi bi-x-circle-fill text-danger me-1"></i> Unmatched</span>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:40px">
+              <input type="checkbox" id="select-all" checked class="form-check-input">
+            </th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Matched To</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in transactions %}
+          {% set i = loop.index0 %}
+          <tr class="{% if tx.confidence == 100 %}table-success{% elif tx.confidence >= 60 %}table-warning{% else %}table-danger{% endif %}">
+            <td>
+              <input type="checkbox" name="accept_{{ i }}" value="1"
+                class="form-check-input row-check"
+                {% if tx.confidence >= 60 %}checked{% endif %}>
+            </td>
+            <td class="small text-muted">
+              {{ tx.date }}
+              <input type="hidden" name="date_{{ i }}" value="{{ tx.date }}">
+              <input type="hidden" name="amount_{{ i }}" value="{{ tx.amount }}">
+              <input type="hidden" name="ref_{{ i }}" value="{{ tx.reference }}">
+              <input type="hidden" name="matched_how_{{ i }}" value="{{ tx.matched_how or 'manual' }}">
+            </td>
+            <td>
+              <input type="text" name="desc_{{ i }}" value="{{ tx.description }}"
+                class="form-control form-control-sm border-0 bg-transparent px-0">
+            </td>
+            <td class="text-success fw-semibold">R {{ "%.2f"|format(tx.amount) }}</td>
+            <td>
+              <select name="student_id_{{ i }}" class="form-select form-select-sm" style="min-width:160px">
+                <option value="">— Unmatched —</option>
+                {% for s in students %}
+                <option value="{{ s.id }}"
+                  {% if tx.student_id == s.id %}selected{% endif %}>
+                  {{ s.first_name }} {{ s.last_name }}
+                </option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              {% if tx.confidence == 100 %}
+                <span class="badge bg-success">Keyword</span>
+              {% elif tx.confidence >= 80 %}
+                <span class="badge bg-success">{{ tx.confidence }}%</span>
+              {% elif tx.confidence >= 60 %}
+                <span class="badge bg-warning text-dark">{{ tx.confidence }}%</span>
+              {% else %}
+                <span class="badge bg-danger">No match</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="d-flex gap-3">
+    <button type="submit" class="btn btn-primary px-4">
+      <i class="bi bi-save me-2"></i> Save Checked Transactions
+    </button>
+    <a href="{{ url_for('upload') }}" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+
+{% endblock %}

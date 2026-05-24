@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Statement – {{ data.student.first_name }} {{ data.student.last_name }} – {{ month }}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 13px; color: #222; padding: 40px; }
+    .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+    .school-name { font-size: 22px; font-weight: bold; color: #2c7a4b; }
+    .school-sub { font-size: 12px; color: #666; margin-top: 4px; }
+    h2 { font-size: 16px; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 2px solid #2c7a4b; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+    .info-grid div { font-size: 12px; }
+    .info-grid .label { color: #666; }
+    .info-grid .val { font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f0f9f4; padding: 8px 10px; text-align: left; font-size: 12px; color: #444; }
+    td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+    .amount { text-align: right; }
+    .total-row td { font-weight: bold; background: #f9f9f9; }
+    .balance-box { border: 2px solid; border-radius: 6px; padding: 14px 20px;
+                   display: flex; justify-content: space-between; align-items: center;
+                   margin-bottom: 24px; }
+    .balance-box.paid { border-color: #2c7a4b; background: #f0f9f4; }
+    .balance-box.unpaid { border-color: #dc3545; background: #fff5f5; }
+    .balance-val { font-size: 22px; font-weight: bold; }
+    .paid .balance-val { color: #2c7a4b; }
+    .unpaid .balance-val { color: #dc3545; }
+    .notes { font-size: 12px; color: #555; background: #f9f9f9; padding: 10px 14px;
+             border-radius: 4px; margin-bottom: 20px; }
+    .footer { font-size: 11px; color: #999; text-align: center; margin-top: 40px; border-top: 1px solid #eee; padding-top: 12px; }
+    @media print { body { padding: 20px; } }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="school-name">{{ daycare_name }}</div>
+    <div class="school-sub">Fee Statement</div>
+  </div>
+  <div style="text-align:right; font-size:12px; color:#666;">
+    <div><strong>Period:</strong> {{ month }}</div>
+    <div><strong>Generated:</strong> {{ now.strftime('%d %b %Y') }}</div>
+  </div>
+</div>
+
+<h2>Student Fee Statement</h2>
+
+<div class="info-grid">
+  <div><span class="label">Student: </span><span class="val">{{ data.student.first_name }} {{ data.student.last_name }}</span></div>
+  <div><span class="label">Parent: </span><span class="val">{{ data.student.parent_name or '—' }}</span></div>
+  <div><span class="label">Age Group: </span><span class="val">{{ data.student.tier_name or '—' }}</span></div>
+  <div><span class="label">Phone: </span><span class="val">{{ data.student.parent_phone or '—' }}</span></div>
+</div>
+
+<!-- Charges -->
+<table>
+  <thead>
+    <tr><th>Description</th><th>Date</th><th class="amount">Amount</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Monthly Tuition Fee{% if data.student.tier_name %} ({{ data.student.tier_name }}){% endif %}</td>
+      <td>{{ month }}</td>
+      <td class="amount">R {{ "%.2f"|format(data.fee_amount) }}</td>
+    </tr>
+    {% for e in data.extras %}
+    <tr>
+      <td>{{ e.description }}</td>
+      <td>{{ e.date }}</td>
+      <td class="amount">R {{ "%.2f"|format(e.amount) }}</td>
+    </tr>
+    {% endfor %}
+    <tr class="total-row">
+      <td colspan="2">Total Due</td>
+      <td class="amount">R {{ "%.2f"|format(data.total_due) }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Payments -->
+{% if data.payments %}
+<table>
+  <thead>
+    <tr><th>Payment Description</th><th>Date</th><th class="amount">Amount</th></tr>
+  </thead>
+  <tbody>
+    {% for p in data.payments %}
+    <tr>
+      <td>{{ p.description[:60] }}</td>
+      <td>{{ p.date }}</td>
+      <td class="amount" style="color:#2c7a4b;">R {{ "%.2f"|format(p.amount) }}</td>
+    </tr>
+    {% endfor %}
+    <tr class="total-row">
+      <td colspan="2">Total Payments Received</td>
+      <td class="amount" style="color:#2c7a4b;">R {{ "%.2f"|format(data.total_paid) }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Balance -->
+<div class="balance-box {{ 'paid' if data.balance <= 0 else 'unpaid' }}">
+  <span style="font-size:14px; font-weight:bold;">
+    {% if data.balance <= 0 %}✅ Account is up to date{% else %}⚠ Outstanding Balance{% endif %}
+  </span>
+  <span class="balance-val">R {{ "%.2f"|format(data.balance) }}</span>
+</div>
+
+{% if data.invoice_notes %}
+<div class="notes"><strong>Notes:</strong> {{ data.invoice_notes }}</div>
+{% endif %}
+
+<div class="footer">
+  {{ daycare_name }} • This statement was generated on {{ now.strftime('%d %B %Y') }}
+</div>
+
+<script>window.onload = function() { window.print(); }</script>
+</body>
+</html>

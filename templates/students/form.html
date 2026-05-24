@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if student else 'Add' }} Student{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{{ url_for('students') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h4 class="fw-bold mb-0">{{ 'Edit' if student else 'Add New' }} Student</h4>
+</div>
+
+<div class="row">
+  <div class="col-md-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">First Name *</label>
+              <input type="text" name="first_name" class="form-control"
+                value="{{ student.first_name if student else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Last Name *</label>
+              <input type="text" name="last_name" class="form-control"
+                value="{{ student.last_name if student else '' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Date of Birth</label>
+              <input type="date" name="date_of_birth" class="form-control"
+                value="{{ student.date_of_birth if student else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Fee Tier</label>
+              <select name="tier_id" class="form-select">
+                <option value="">— No tier —</option>
+                {% for t in tiers %}
+                <option value="{{ t.id }}"
+                  {% if student and student.tier_id == t.id %}selected{% endif %}>
+                  {{ t.name }} — R {{ "%.2f"|format(t.monthly_fee) }}/mo
+                </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">
+                <a href="{{ url_for('settings_tiers') }}">Manage fee tiers</a>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Parent / Guardian Name</label>
+              <input type="text" name="parent_name" class="form-control"
+                value="{{ student.parent_name if student else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Parent Phone</label>
+              <input type="tel" name="parent_phone" class="form-control"
+                value="{{ student.parent_phone if student else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Start Date</label>
+              <input type="date" name="start_date" class="form-control"
+                value="{{ student.start_date if student else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Notes</label>
+              <textarea name="notes" class="form-control" rows="3"
+                >{{ student.notes if student else '' }}</textarea>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-save me-1"></i> {{ 'Save Changes' if student else 'Add Student' }}
+            </button>
+            <a href="{{ url_for('students') }}" class="btn btn-outline-secondary">Cancel</a>
+            {% if student %}
+            <form method="POST" action="{{ url_for('student_deactivate', sid=student.id) }}"
+                  class="ms-auto" onsubmit="return confirm('Deactivate this student?')">
+              <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-person-dash me-1"></i> Deactivate
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

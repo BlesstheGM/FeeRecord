@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Fee Tiers{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">Fee Tiers</h4>
+</div>
+
+<div class="row g-4">
+  <!-- Existing tiers -->
+  <div class="col-md-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 fw-semibold">Current Tiers</div>
+      <div class="card-body p-0">
+        {% if tiers %}
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Tier Name</th>
+              <th>Age Range</th>
+              <th class="text-end">Monthly Fee</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in tiers %}
+            <tr>
+              <td class="fw-semibold">{{ t.name }}</td>
+              <td class="text-muted small">
+                {% if t.age_min is not none and t.age_max is not none %}
+                  {{ t.age_min }}–{{ t.age_max }} months
+                {% elif t.age_min is not none %}
+                  {{ t.age_min }}+ months
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="text-end fw-semibold">R {{ "%.2f"|format(t.monthly_fee) }}</td>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                  <button class="btn btn-sm btn-outline-secondary"
+                          onclick="editTier({{ t.id }}, '{{ t.name }}', {{ t.age_min or 'null' }}, {{ t.age_max or 'null' }}, {{ t.monthly_fee }})">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <form method="POST" action="{{ url_for('tier_delete', tier_id=t.id) }}"
+                        onsubmit="return confirm('Delete tier \'{{ t.name }}\'? Students on this tier will lose their fee assignment.')">
+                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5 small">No tiers yet. Add one on the right.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit tier -->
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 fw-semibold" id="tier-form-title">Add Tier</div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('tier_save') }}" id="tier-form">
+          <input type="hidden" name="tier_id" id="tier_id" value="">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tier Name *</label>
+            <input type="text" name="name" id="tier_name" class="form-control"
+                   placeholder="e.g. Toddler, Baby Room, Pre-School" required>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Min Age (months)</label>
+              <input type="number" name="age_min" id="tier_age_min" class="form-control"
+                     min="0" placeholder="e.g. 0">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Max Age (months)</label>
+              <input type="number" name="age_max" id="tier_age_max" class="form-control"
+                     min="0" placeholder="e.g. 18">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Monthly Fee (R) *</label>
+            <input type="number" name="monthly_fee" id="tier_fee" class="form-control"
+                   step="0.01" min="0" required placeholder="e.g. 3500.00">
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-save me-1"></i> Save Tier
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function editTier(id, name, ageMin, ageMax, fee) {
+  document.getElementById('tier_id').value = id;
+  document.getElementById('tier_name').value = name;
+  document.getElementById('tier_age_min').value = ageMin === null ? '' : ageMin;
+  document.getElementById('tier_age_max').value = ageMax === null ? '' : ageMax;
+  document.getElementById('tier_fee').value = fee;
+  document.getElementById('tier-form-title').textContent = 'Edit Tier';
+  document.getElementById('tier_name').focus();
+}
+function resetForm() {
+  document.getElementById('tier-form').reset();
+  document.getElementById('tier_id').value = '';
+  document.getElementById('tier-form-title').textContent = 'Add Tier';
+}
+</script>
+{% endblock %}

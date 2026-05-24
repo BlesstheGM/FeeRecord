@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Payments{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">All Payments</h4>
+  <a href="{{ url_for('extra_new') }}" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-plus me-1"></i> Add Extra Charge
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Student</th>
+          <th>Matched Via</th>
+          <th>Reassign</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td class="text-muted small">{{ tx.date }}</td>
+          <td class="small">{{ tx.description[:60] }}</td>
+          <td class="text-success fw-semibold">R {{ "%.2f"|format(tx.amount) }}</td>
+          <td>
+            {% if tx.first_name %}
+              <a href="{{ url_for('student_detail', sid=tx.student_id) }}" class="text-decoration-none">
+                {{ tx.first_name }} {{ tx.last_name }}
+              </a>
+            {% else %}
+              <span class="badge bg-warning text-dark">Unmatched</span>
+            {% endif %}
+          </td>
+          <td><span class="badge bg-light text-dark border">{{ tx.matched_how or '—' }}</span></td>
+          <td>
+            <form method="POST" action="{{ url_for('payment_reassign', tx_id=tx.id) }}" class="d-flex gap-1">
+              <select name="student_id" class="form-select form-select-sm" style="min-width:150px">
+                <option value="">— Remove —</option>
+                {% for s in students %}
+                <option value="{{ s.id }}" {% if tx.student_id == s.id %}selected{% endif %}>
+                  {{ s.first_name }} {{ s.last_name }}
+                </option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-repeat"></i></button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('payment_delete', tx_id=tx.id) }}"
+                  onsubmit="return confirm('Delete this transaction?')">
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-5">No payments yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

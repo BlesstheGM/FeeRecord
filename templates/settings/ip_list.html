@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}IP Access Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">IP Access Control</h4>
+</div>
+
+<div class="alert alert-warning border small mb-4">
+  <i class="bi bi-shield-lock me-1"></i>
+  Only devices with an IP address on this list can access the system.
+  <strong>127.0.0.1 (localhost) is always allowed</strong> and cannot be removed.
+  Your current IP is: <strong>{{ current_ip }}</strong>
+</div>
+
+<div class="row g-4">
+  <!-- Allowed IPs -->
+  <div class="col-md-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 fw-semibold">Allowed Addresses</div>
+      <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>IP Address</th>
+              <th>Label</th>
+              <th>Added</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ip in allowed_ips %}
+            <tr>
+              <td>
+                <code class="bg-light px-2 py-1 rounded text-dark small">{{ ip.ip_address }}</code>
+                {% if ip.ip_address == current_ip %}
+                  <span class="badge bg-success ms-1 small">You</span>
+                {% endif %}
+              </td>
+              <td class="text-muted small">{{ ip.label or '—' }}</td>
+              <td class="text-muted small">{{ ip.added_at[:10] if ip.added_at else '—' }}</td>
+              <td class="text-end">
+                {% if ip.ip_address != '127.0.0.1' %}
+                <form method="POST" action="{{ url_for('ip_delete', ip_id=ip.id) }}"
+                      onsubmit="return confirm('Remove {{ ip.ip_address }}? That device will lose access.')">
+                  <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+                {% else %}
+                <span class="text-muted small">locked</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add IP -->
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white py-3 fw-semibold">Add IP Address</div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('ip_add') }}">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">IP Address *</label>
+            <input type="text" name="ip_address" class="form-control"
+                   placeholder="e.g. 192.168.1.100" required
+                   pattern="^(\d{1,3}\.){3}\d{1,3}$">
+            <div class="form-text">IPv4 address only (e.g. 196.25.10.4)</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Label (optional)</label>
+            <input type="text" name="label" class="form-control"
+                   placeholder="e.g. Office WiFi, Reception desk">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-plus-circle me-1"></i> Add Address
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick-add current IP -->
+    {% if current_ip and current_ip not in allowed_ips|map(attribute='ip_address')|list %}
+    <div class="card border-0 shadow-sm border-start border-primary" style="border-left-width:3px !important;">
+      <div class="card-body p-3">
+        <div class="small text-muted mb-2">Add your current device quickly:</div>
+        <form method="POST" action="{{ url_for('ip_add') }}" class="d-flex gap-2">
+          <input type="hidden" name="ip_address" value="{{ current_ip }}">
+          <input type="text" name="label" class="form-control form-control-sm"
+                 placeholder="Label for this device">
+          <button class="btn btn-sm btn-outline-primary text-nowrap">
+            Add {{ current_ip }}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
