@@ -348,20 +348,32 @@ def extra_new():
         "SELECT id, first_name, last_name FROM students WHERE is_active=1 ORDER BY last_name"
     ).fetchall()
     if request.method == "POST":
-        db.execute("""
-            INSERT INTO extra_charges (student_id, date, description, amount, category)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            request.form["student_id"],
-            request.form["date"],
-            request.form["description"],
-            float(request.form["amount"]),
-            request.form.get("category", "other"),
-        ))
-        db.commit()
-        flash("Charge added.", "success")
-        sid = request.form["student_id"]
-        return redirect(url_for("student_detail", sid=sid))
+        sid      = request.form["student_id"]
+        date_val = request.form["date"]
+        desc     = request.form["description"]
+        amount   = float(request.form["amount"])
+        category = request.form.get("category", "other")
+
+        if sid == "all":
+            all_students = db.execute(
+                "SELECT id FROM students WHERE is_active=1"
+            ).fetchall()
+            for s in all_students:
+                db.execute("""
+                    INSERT INTO extra_charges (student_id, date, description, amount, category)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (s["id"], date_val, desc, amount, category))
+            db.commit()
+            flash(f"Charge added for all {len(all_students)} students.", "success")
+            return redirect(url_for("payments"))
+        else:
+            db.execute("""
+                INSERT INTO extra_charges (student_id, date, description, amount, category)
+                VALUES (?, ?, ?, ?, ?)
+            """, (sid, date_val, desc, amount, category))
+            db.commit()
+            flash("Charge added.", "success")
+            return redirect(url_for("student_detail", sid=sid))
     return render_template("payments/extra_form.html", students=students,
                            today=date.today().isoformat())
 

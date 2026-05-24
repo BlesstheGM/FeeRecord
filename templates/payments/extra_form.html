@@ -16,6 +16,7 @@
             <label class="form-label fw-semibold">Student *</label>
             <select name="student_id" class="form-select" required>
               <option value="">Select student...</option>
+              <option value="all">— All Students —</option>
               {% for s in students %}
               <option value="{{ s.id }}">{{ s.first_name }} {{ s.last_name }}</option>
               {% endfor %}
