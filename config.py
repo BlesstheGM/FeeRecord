@@ -1,6 +1,6 @@
 import os
 
-DAYCARE_NAME = "Little Stars Day Care"
+DAYCARE_NAME = "Smart Kid's Fun Centre"
 DATABASE = os.path.join(os.path.dirname(__file__), "daycare.db")
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-in-production-abc123")
