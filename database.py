@@ -79,11 +79,19 @@ def init_db():
         );
     """)
 
-    # Seed one default IP so the system is accessible on first run
+    # Seed default IPs so the system is accessible on first run
     c.execute("""
         INSERT OR IGNORE INTO allowed_ips (ip_address, label)
         VALUES ('127.0.0.1', 'Localhost')
     """)
+
+    import os
+    owner_ip = os.environ.get("OWNER_IP", "").strip()
+    if owner_ip:
+        c.execute("""
+            INSERT OR IGNORE INTO allowed_ips (ip_address, label)
+            VALUES (?, 'Owner')
+        """, (owner_ip,))
 
     conn.commit()
     conn.close()
