@@ -31,15 +31,30 @@
                 value="{{ student.date_of_birth if student else '' }}">
             </div>
             <div class="col-6">
+              <label class="form-label fw-semibold">Branch *</label>
+              <select name="branch" class="form-select" required>
+                <option value="">— Select branch —</option>
+                <option value="Naturena" {% if student and student.branch == 'Naturena' %}selected{% endif %}>Naturena</option>
+                <option value="Ridgeway" {% if student and student.branch == 'Ridgeway' %}selected{% endif %}>Ridgeway</option>
+              </select>
+            </div>
+            <div class="col-6">
               <label class="form-label fw-semibold">Fee Tier</label>
               <select name="tier_id" class="form-select">
                 <option value="">— No tier —</option>
+                {% set ns = namespace(last_branch='') %}
                 {% for t in tiers %}
-                <option value="{{ t.id }}"
-                  {% if student and student.tier_id == t.id %}selected{% endif %}>
-                  {{ t.name }} — R {{ "%.2f"|format(t.monthly_fee) }}/mo
-                </option>
+                  {% if t.branch and t.branch != ns.last_branch %}
+                    {% if ns.last_branch %}</optgroup>{% endif %}
+                    <optgroup label="{{ t.branch }}">
+                    {% set ns.last_branch = t.branch %}
+                  {% endif %}
+                  <option value="{{ t.id }}"
+                    {% if student and student.tier_id == t.id %}selected{% endif %}>
+                    {{ t.name }} — R {{ "%.2f"|format(t.monthly_fee) }}/mo
+                  </option>
                 {% endfor %}
+                {% if ns.last_branch %}</optgroup>{% endif %}
               </select>
               <div class="form-text">
                 <a href="{{ url_for('settings_tiers') }}">Manage fee tiers</a>

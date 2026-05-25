@@ -15,6 +15,7 @@
       <thead class="table-light">
         <tr>
           <th>Name</th>
+          <th>Branch</th>
           <th>Age Group</th>
           <th>Monthly Fee</th>
           <th>Parent</th>
@@ -29,6 +30,13 @@
             <a href="{{ url_for('student_detail', sid=s.id) }}" class="fw-semibold text-decoration-none">
               {{ s.first_name }} {{ s.last_name }}
             </a>
+          </td>
+          <td>
+            {% if s.branch %}
+              <span class="badge bg-success-subtle text-success">{{ s.branch }}</span>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
           </td>
           <td>
             {% if s.tier_name %}
@@ -50,7 +58,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="text-center text-muted py-5">No students yet. Add one to get started.</td></tr>
+        <tr><td colspan="7" class="text-center text-muted py-5">No students yet. Add one to get started.</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -16,6 +16,7 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
+              <th>Branch</th>
               <th>Tier Name</th>
               <th>Age Range</th>
               <th class="text-end">Monthly Fee</th>
@@ -25,6 +26,7 @@
           <tbody>
             {% for t in tiers %}
             <tr>
+              <td class="text-muted small">{{ t.branch or '—' }}</td>
               <td class="fw-semibold">{{ t.name }}</td>
               <td class="text-muted small">
                 {% if t.age_min is not none and t.age_max is not none %}
@@ -39,7 +41,7 @@
               <td class="text-end">
                 <div class="d-flex gap-1 justify-content-end">
                   <button class="btn btn-sm btn-outline-secondary"
-                          onclick="editTier({{ t.id }}, '{{ t.name }}', {{ t.age_min or 'null' }}, {{ t.age_max or 'null' }}, {{ t.monthly_fee }})">
+                          onclick="editTier({{ t.id }}, '{{ t.name }}', {{ t.age_min or 'null' }}, {{ t.age_max or 'null' }}, {{ t.monthly_fee }}, '{{ t.branch or '' }}')">
                     <i class="bi bi-pencil"></i>
                   </button>
                   <form method="POST" action="{{ url_for('tier_delete', tier_id=t.id) }}"
@@ -84,6 +86,14 @@
             </div>
           </div>
           <div class="mb-3">
+            <label class="form-label fw-semibold">Branch</label>
+            <select name="branch" id="tier_branch" class="form-select">
+              <option value="">— Any / Both —</option>
+              <option value="Naturena">Naturena</option>
+              <option value="Ridgeway">Ridgeway</option>
+            </select>
+          </div>
+          <div class="mb-3">
             <label class="form-label fw-semibold">Monthly Fee (R) *</label>
             <input type="number" name="monthly_fee" id="tier_fee" class="form-control"
                    step="0.01" min="0" required placeholder="e.g. 3500.00">
@@ -101,12 +111,13 @@
 </div>
 
 <script>
-function editTier(id, name, ageMin, ageMax, fee) {
+function editTier(id, name, ageMin, ageMax, fee, branch) {
   document.getElementById('tier_id').value = id;
   document.getElementById('tier_name').value = name;
   document.getElementById('tier_age_min').value = ageMin === null ? '' : ageMin;
   document.getElementById('tier_age_max').value = ageMax === null ? '' : ageMax;
   document.getElementById('tier_fee').value = fee;
+  document.getElementById('tier_branch').value = branch || '';
   document.getElementById('tier-form-title').textContent = 'Edit Tier';
   document.getElementById('tier_name').focus();
 }

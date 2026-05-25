@@ -218,16 +218,17 @@ def students():
 @app.route("/students/new", methods=["GET", "POST"])
 def student_new():
     db = get_db()
-    tiers = db.execute("SELECT * FROM fee_tiers ORDER BY age_min").fetchall()
+    tiers = db.execute("SELECT * FROM fee_tiers ORDER BY branch, age_min NULLS LAST, name").fetchall()
     if request.method == "POST":
         db.execute("""
             INSERT INTO students (first_name, last_name, date_of_birth, tier_id,
-                                  parent_name, parent_phone, start_date, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                  branch, parent_name, parent_phone, start_date, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             request.form["first_name"], request.form["last_name"],
             request.form.get("date_of_birth") or None,
             request.form.get("tier_id") or None,
+            request.form.get("branch") or None,
             request.form.get("parent_name"), request.form.get("parent_phone"),
             request.form.get("start_date") or None, request.form.get("notes"),
         ))
@@ -272,18 +273,19 @@ def student_detail(sid):
 def student_edit(sid):
     db = get_db()
     student = db.execute("SELECT * FROM students WHERE id=?", (sid,)).fetchone()
-    tiers   = db.execute("SELECT * FROM fee_tiers ORDER BY age_min").fetchall()
+    tiers   = db.execute("SELECT * FROM fee_tiers ORDER BY branch, age_min NULLS LAST, name").fetchall()
     if not student:
         abort(404)
     if request.method == "POST":
         db.execute("""
             UPDATE students SET first_name=?, last_name=?, date_of_birth=?,
-            tier_id=?, parent_name=?, parent_phone=?, start_date=?, notes=?
+            tier_id=?, branch=?, parent_name=?, parent_phone=?, start_date=?, notes=?
             WHERE id=?
         """, (
             request.form["first_name"], request.form["last_name"],
             request.form.get("date_of_birth") or None,
             request.form.get("tier_id") or None,
+            request.form.get("branch") or None,
             request.form.get("parent_name"), request.form.get("parent_phone"),
             request.form.get("start_date") or None, request.form.get("notes"),
             sid,
@@ -431,7 +433,7 @@ def statement_save(sid, month):
 @app.route("/settings/tiers")
 def settings_tiers():
     db = get_db()
-    tiers = db.execute("SELECT * FROM fee_tiers ORDER BY age_min NULLS LAST, name").fetchall()
+    tiers = db.execute("SELECT * FROM fee_tiers ORDER BY branch NULLS LAST, age_min NULLS LAST, name").fetchall()
     return render_template("settings/tiers.html", tiers=tiers)
 
 
@@ -443,15 +445,16 @@ def tier_save():
     age_min  = request.form.get("age_min") or None
     age_max  = request.form.get("age_max") or None
     fee      = float(request.form["monthly_fee"])
+    branch   = request.form.get("branch") or None
     if tier_id:
         db.execute(
-            "UPDATE fee_tiers SET name=?, age_min=?, age_max=?, monthly_fee=? WHERE id=?",
-            (name, age_min, age_max, fee, tier_id)
+            "UPDATE fee_tiers SET name=?, age_min=?, age_max=?, monthly_fee=?, branch=? WHERE id=?",
+            (name, age_min, age_max, fee, branch, tier_id)
         )
     else:
         db.execute(
-            "INSERT INTO fee_tiers (name, age_min, age_max, monthly_fee) VALUES (?,?,?,?)",
-            (name, age_min, age_max, fee)
+            "INSERT INTO fee_tiers (name, age_min, age_max, monthly_fee, branch) VALUES (?,?,?,?,?)",
+            (name, age_min, age_max, fee, branch)
         )
     db.commit()
     flash("Tier saved.", "success")

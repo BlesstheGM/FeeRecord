@@ -2,122 +2,238 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Statement – {{ data.student.first_name }} {{ data.student.last_name }} – {{ month }}</title>
+  <title>Fee Statement – {{ data.student.first_name }} {{ data.student.last_name }} – {{ month }}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; font-size: 13px; color: #222; padding: 40px; }
-    .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
-    .school-name { font-size: 22px; font-weight: bold; color: #2c7a4b; }
-    .school-sub { font-size: 12px; color: #666; margin-top: 4px; }
-    h2 { font-size: 16px; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 2px solid #2c7a4b; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
-    .info-grid div { font-size: 12px; }
-    .info-grid .label { color: #666; }
-    .info-grid .val { font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    th { background: #f0f9f4; padding: 8px 10px; text-align: left; font-size: 12px; color: #444; }
-    td { padding: 8px 10px; border-bottom: 1px solid #eee; }
-    .amount { text-align: right; }
-    .total-row td { font-weight: bold; background: #f9f9f9; }
-    .balance-box { border: 2px solid; border-radius: 6px; padding: 14px 20px;
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #222; background: #fff; }
+    .page { max-width: 720px; margin: 0 auto; padding: 32px 40px; }
+
+    /* ── Header ── */
+    .header { display: flex; align-items: flex-start; justify-content: space-between;
+              border-bottom: 4px solid #1a7a3e; padding-bottom: 16px; margin-bottom: 0; }
+    .logo-block { display: flex; align-items: center; gap: 14px; }
+    .logo-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #f7c948 0%, #f0831a 50%, #e63939 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -1px;
+      flex-shrink: 0; border: 3px solid #1a7a3e;
+    }
+    .brand { }
+    .brand-name { font-size: 20px; font-weight: 900; color: #1a7a3e; line-height: 1.1; }
+    .brand-tagline { font-size: 10px; color: #666; margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .brand-reg { font-size: 9px; color: #999; margin-top: 3px; }
+
+    .doc-info { text-align: right; }
+    .doc-title { font-size: 18px; font-weight: 700; color: #1a7a3e; text-transform: uppercase;
+                 letter-spacing: 1px; }
+    .doc-meta { font-size: 11px; color: #555; margin-top: 6px; line-height: 1.7; }
+
+    /* ── Contact bar ── */
+    .contact-bar { background: #1a7a3e; color: #fff; padding: 7px 16px;
+                   display: flex; gap: 24px; flex-wrap: wrap; font-size: 10.5px; margin-bottom: 20px; }
+    .contact-bar span { display: flex; align-items: center; gap: 5px; }
+
+    /* ── Branch badge ── */
+    .branch-badge { display: inline-block; background: #f0f9f4; border: 1px solid #1a7a3e;
+                    color: #1a7a3e; font-size: 10px; font-weight: 700; padding: 2px 10px;
+                    border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+                    margin-bottom: 16px; }
+
+    /* ── Info grid ── */
+    .info-section { display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+                    border: 1px solid #d0e8d8; border-radius: 6px; overflow: hidden;
+                    margin-bottom: 20px; }
+    .info-cell { padding: 8px 14px; border-bottom: 1px solid #e8f4ec; }
+    .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+    .info-label { font-size: 9.5px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+    .info-val { font-size: 12px; font-weight: 700; color: #222; }
+
+    /* ── Tables ── */
+    .section-title { font-size: 11px; font-weight: 700; color: #1a7a3e; text-transform: uppercase;
+                     letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 18px; border-bottom: 1px solid #c8e6d0;
+                     padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+    thead tr { background: #1a7a3e; color: #fff; }
+    th { padding: 7px 10px; text-align: left; font-size: 10.5px; font-weight: 600; }
+    th.r { text-align: right; }
+    td { padding: 7px 10px; border-bottom: 1px solid #eef5ef; font-size: 11.5px; }
+    td.r { text-align: right; }
+    tbody tr:nth-child(even) td { background: #f7fbf8; }
+    .total-row td { font-weight: 700; background: #eef7f1 !important; border-top: 2px solid #1a7a3e;
+                    font-size: 12px; }
+    .payment-row td { color: #1a7a3e; }
+
+    /* ── Balance box ── */
+    .balance-box { border-radius: 6px; padding: 14px 20px;
                    display: flex; justify-content: space-between; align-items: center;
-                   margin-bottom: 24px; }
-    .balance-box.paid { border-color: #2c7a4b; background: #f0f9f4; }
-    .balance-box.unpaid { border-color: #dc3545; background: #fff5f5; }
-    .balance-val { font-size: 22px; font-weight: bold; }
-    .paid .balance-val { color: #2c7a4b; }
+                   margin: 18px 0; }
+    .balance-box.paid { border: 2px solid #1a7a3e; background: #f0f9f4; }
+    .balance-box.unpaid { border: 2px solid #dc3545; background: #fff5f5; }
+    .balance-label { font-size: 13px; font-weight: 700; }
+    .paid .balance-label { color: #1a7a3e; }
+    .unpaid .balance-label { color: #dc3545; }
+    .balance-val { font-size: 24px; font-weight: 900; }
+    .paid .balance-val { color: #1a7a3e; }
     .unpaid .balance-val { color: #dc3545; }
-    .notes { font-size: 12px; color: #555; background: #f9f9f9; padding: 10px 14px;
-             border-radius: 4px; margin-bottom: 20px; }
-    .footer { font-size: 11px; color: #999; text-align: center; margin-top: 40px; border-top: 1px solid #eee; padding-top: 12px; }
-    @media print { body { padding: 20px; } }
+
+    /* ── Notes ── */
+    .notes-box { font-size: 11px; color: #555; background: #fffbec;
+                 border: 1px solid #f0dc8a; border-radius: 4px;
+                 padding: 9px 14px; margin-bottom: 18px; }
+
+    /* ── Footer ── */
+    .footer { border-top: 1px solid #c8e6d0; margin-top: 28px; padding-top: 10px;
+              display: flex; justify-content: space-between; align-items: flex-end; }
+    .footer-left { font-size: 10px; color: #999; line-height: 1.6; }
+    .stamp-box { width: 90px; height: 56px; border: 1px dashed #bbb; border-radius: 4px;
+                 display: flex; align-items: center; justify-content: center;
+                 font-size: 9px; color: #ccc; text-align: center; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page { padding: 16px 24px; }
+    }
   </style>
 </head>
 <body>
+<div class="page">
 
-<div class="header">
-  <div>
-    <div class="school-name">{{ daycare_name }}</div>
-    <div class="school-sub">Fee Statement</div>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-block">
+      <div class="logo-icon">SKF</div>
+      <div class="brand">
+        <div class="brand-name">Smart Kid's Fun Centre</div>
+        <div class="brand-tagline">Where Learning Meets Play</div>
+        <div class="brand-reg">Reg: 2017/194193/08</div>
+      </div>
+    </div>
+    <div class="doc-info">
+      <div class="doc-title">Fee Statement</div>
+      <div class="doc-meta">
+        <strong>Period:</strong> {{ month }}<br>
+        <strong>Date:</strong> {{ now.strftime('%d %B %Y') }}<br>
+        {% if data.student.branch %}<strong>Branch:</strong> {{ data.student.branch }}{% endif %}
+      </div>
+    </div>
   </div>
-  <div style="text-align:right; font-size:12px; color:#666;">
-    <div><strong>Period:</strong> {{ month }}</div>
-    <div><strong>Generated:</strong> {{ now.strftime('%d %b %Y') }}</div>
+
+  <!-- Contact bar -->
+  <div class="contact-bar">
+    <span>&#9742; 084 581 9398</span>
+    <span>&#9742; 073 313 6232</span>
+    <span>&#9993; daphnemachaka@gmail.com</span>
   </div>
+
+  {% if data.student.branch %}
+  <div class="branch-badge">{{ data.student.branch }} Branch</div>
+  {% endif %}
+
+  <!-- Student info -->
+  <div class="section-title">Student Information</div>
+  <div class="info-section">
+    <div class="info-cell">
+      <div class="info-label">Student Name</div>
+      <div class="info-val">{{ data.student.first_name }} {{ data.student.last_name }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Parent / Guardian</div>
+      <div class="info-val">{{ data.student.parent_name or '—' }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Age Group / Tier</div>
+      <div class="info-val">{{ data.student.tier_name or '—' }}</div>
+    </div>
+    <div class="info-cell">
+      <div class="info-label">Contact Number</div>
+      <div class="info-val">{{ data.student.parent_phone or '—' }}</div>
+    </div>
+  </div>
+
+  <!-- Charges -->
+  <div class="section-title">Charges for {{ month }}</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Date</th>
+        <th class="r">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Monthly Tuition Fee{% if data.student.tier_name %} — {{ data.student.tier_name }}{% endif %}</td>
+        <td>{{ month }}</td>
+        <td class="r">R {{ "%.2f"|format(data.fee_amount) }}</td>
+      </tr>
+      {% for e in data.extras %}
+      <tr>
+        <td>{{ e.description }}</td>
+        <td>{{ e.date }}</td>
+        <td class="r">R {{ "%.2f"|format(e.amount) }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="2">Total Due</td>
+        <td class="r">R {{ "%.2f"|format(data.total_due) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Payments -->
+  {% if data.payments %}
+  <div class="section-title">Payments Received</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Date</th>
+        <th class="r">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in data.payments %}
+      <tr class="payment-row">
+        <td>{{ p.description[:60] }}</td>
+        <td>{{ p.date }}</td>
+        <td class="r">R {{ "%.2f"|format(p.amount) }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="2">Total Payments Received</td>
+        <td class="r" style="color:#1a7a3e;">R {{ "%.2f"|format(data.total_paid) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Balance -->
+  <div class="balance-box {{ 'paid' if data.balance <= 0 else 'unpaid' }}">
+    <div class="balance-label">
+      {% if data.balance <= 0 %}
+        Account Up to Date
+      {% else %}
+        Outstanding Balance
+      {% endif %}
+    </div>
+    <div class="balance-val">R {{ "%.2f"|format(data.balance|abs) }}</div>
+  </div>
+
+  {% if data.invoice_notes %}
+  <div class="notes-box"><strong>Notes:</strong> {{ data.invoice_notes }}</div>
+  {% endif %}
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">
+      Smart Kid's Fun Centre &nbsp;|&nbsp; Reg: 2017/194193/08<br>
+      Generated on {{ now.strftime('%d %B %Y') }} &nbsp;|&nbsp; This is a computer-generated statement.
+    </div>
+    <div class="stamp-box">Official<br>Stamp /<br>Signature</div>
+  </div>
+
 </div>
-
-<h2>Student Fee Statement</h2>
-
-<div class="info-grid">
-  <div><span class="label">Student: </span><span class="val">{{ data.student.first_name }} {{ data.student.last_name }}</span></div>
-  <div><span class="label">Parent: </span><span class="val">{{ data.student.parent_name or '—' }}</span></div>
-  <div><span class="label">Age Group: </span><span class="val">{{ data.student.tier_name or '—' }}</span></div>
-  <div><span class="label">Phone: </span><span class="val">{{ data.student.parent_phone or '—' }}</span></div>
-</div>
-
-<!-- Charges -->
-<table>
-  <thead>
-    <tr><th>Description</th><th>Date</th><th class="amount">Amount</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Monthly Tuition Fee{% if data.student.tier_name %} ({{ data.student.tier_name }}){% endif %}</td>
-      <td>{{ month }}</td>
-      <td class="amount">R {{ "%.2f"|format(data.fee_amount) }}</td>
-    </tr>
-    {% for e in data.extras %}
-    <tr>
-      <td>{{ e.description }}</td>
-      <td>{{ e.date }}</td>
-      <td class="amount">R {{ "%.2f"|format(e.amount) }}</td>
-    </tr>
-    {% endfor %}
-    <tr class="total-row">
-      <td colspan="2">Total Due</td>
-      <td class="amount">R {{ "%.2f"|format(data.total_due) }}</td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- Payments -->
-{% if data.payments %}
-<table>
-  <thead>
-    <tr><th>Payment Description</th><th>Date</th><th class="amount">Amount</th></tr>
-  </thead>
-  <tbody>
-    {% for p in data.payments %}
-    <tr>
-      <td>{{ p.description[:60] }}</td>
-      <td>{{ p.date }}</td>
-      <td class="amount" style="color:#2c7a4b;">R {{ "%.2f"|format(p.amount) }}</td>
-    </tr>
-    {% endfor %}
-    <tr class="total-row">
-      <td colspan="2">Total Payments Received</td>
-      <td class="amount" style="color:#2c7a4b;">R {{ "%.2f"|format(data.total_paid) }}</td>
-    </tr>
-  </tbody>
-</table>
-{% endif %}
-
-<!-- Balance -->
-<div class="balance-box {{ 'paid' if data.balance <= 0 else 'unpaid' }}">
-  <span style="font-size:14px; font-weight:bold;">
-    {% if data.balance <= 0 %}✅ Account is up to date{% else %}⚠ Outstanding Balance{% endif %}
-  </span>
-  <span class="balance-val">R {{ "%.2f"|format(data.balance) }}</span>
-</div>
-
-{% if data.invoice_notes %}
-<div class="notes"><strong>Notes:</strong> {{ data.invoice_notes }}</div>
-{% endif %}
-
-<div class="footer">
-  {{ daycare_name }} • This statement was generated on {{ now.strftime('%d %B %Y') }}
-</div>
-
 <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>
